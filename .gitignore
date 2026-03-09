@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+qr_scanner_backend/venv/
+qr_scanner_backend/staticfiles/
+
+# Node
+qr_scanner_frontend/node_modules/
+qr_scanner_frontend/dist/
+
+# Environment
+.env
