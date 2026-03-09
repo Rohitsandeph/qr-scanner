@@ -31,15 +31,42 @@ class FirstScanView(APIView):
         qr_data = serializer.validated_data['qr_data']
         extracted_id = extract_id(qr_data)
 
+        # Look up QR #1 in database to find its match_key
+        match_key = extracted_id  # default fallback
+        qr_label = ''
+        qr_found_in_db = False
+
+        try:
+            qr_code = QRCode.objects.get(value=qr_data.strip(), is_active=True)
+            match_key = qr_code.match_key
+            qr_label = qr_code.label
+            qr_found_in_db = True
+        except QRCode.DoesNotExist:
+            # Try partial match — maybe the scanned data contains a known value
+            try:
+                qr_code = QRCode.objects.filter(
+                    value__iexact=qr_data.strip(), is_active=True
+                ).first()
+                if qr_code:
+                    match_key = qr_code.match_key
+                    qr_label = qr_code.label
+                    qr_found_in_db = True
+            except Exception:
+                pass
+
         session = ScanSession.objects.create(
             first_qr_data=qr_data,
             first_qr_id=extracted_id,
+            match_key=match_key,
             scanned_by=request.user,
         )
 
         return Response({
             'session_id': str(session.session_id),
             'extracted_id': extracted_id,
+            'match_key': match_key,
+            'qr_label': qr_label,
+            'found_in_system': qr_found_in_db,
         }, status=status.HTTP_201_CREATED)
 
 
@@ -62,16 +89,22 @@ class MatchScanView(APIView):
             )
 
         second_id = extract_id(qr_data)
-        is_match = check_match(session.first_qr_id, qr_data)
+
+        # Use the match_key from QR #1 to search in QR #2's raw data
+        result = check_match(session.match_key, qr_data)
 
         session.second_qr_data = qr_data
         session.second_qr_id = second_id
-        session.is_match = is_match
+        session.is_match = result['is_match']
+        session.match_message = result['message']
         session.completed_at = timezone.now()
         session.save()
 
         return Response({
-            'is_match': is_match,
+            'is_match': result['is_match'],
+            'match_key': session.match_key,
+            'message': result['message'],
+            'matched_portion': result['matched_portion'],
             'first_id': session.first_qr_id,
             'second_id': second_id,
             'second_data': qr_data,
@@ -98,6 +131,7 @@ class QRCodeGenerateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         value = serializer.validated_data['value']
+        match_key = serializer.validated_data['match_key']
         label = serializer.validated_data.get('label', '')
         category = serializer.validated_data.get('category', 'custom')
 
@@ -105,6 +139,7 @@ class QRCodeGenerateView(APIView):
 
         qr_code = QRCode.objects.create(
             value=value,
+            match_key=match_key,
             label=label,
             category=category,
             qr_image_base64=qr_image_base64,
@@ -129,13 +164,21 @@ class BulkQRCodeGenerateView(APIView):
         end = serializer.validated_data['end']
         padding = serializer.validated_data.get('padding', 3)
         category = serializer.validated_data.get('category', 'custom')
+        match_key_prefix = serializer.validated_data.get('match_key_prefix', '')
 
         created = []
         for i in range(start, end + 1):
             value = f"{prefix}{str(i).zfill(padding)}"
+            # If match_key_prefix provided, use it; otherwise match_key = value
+            if match_key_prefix:
+                match_key = f"{match_key_prefix}{str(i).zfill(padding)}"
+            else:
+                match_key = value
+
             qr_image_base64 = generate_qr_base64(value)
             qr_code = QRCode.objects.create(
                 value=value,
+                match_key=match_key,
                 label=value,
                 category=category,
                 qr_image_base64=qr_image_base64,
@@ -168,7 +211,7 @@ class QRCodeListView(ListAPIView):
 
 def models_Q_label_value(search):
     from django.db.models import Q
-    return Q(label__icontains=search) | Q(value__icontains=search)
+    return Q(label__icontains=search) | Q(value__icontains=search) | Q(match_key__icontains=search)
 
 
 class QRCodeDetailView(APIView):

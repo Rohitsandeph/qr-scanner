@@ -19,6 +19,7 @@ class ScanSessionSerializer(serializers.ModelSerializer):
 
 class QRCodeGenerateSerializer(serializers.Serializer):
     value = serializers.CharField()
+    match_key = serializers.CharField(help_text='String to search for when matching')
     label = serializers.CharField(required=False, default='')
     category = serializers.ChoiceField(
         choices=QRCode.Category.choices,
@@ -37,6 +38,11 @@ class BulkQRCodeGenerateSerializer(serializers.Serializer):
         required=False,
         default='custom',
     )
+    match_key_prefix = serializers.CharField(
+        required=False,
+        default='',
+        help_text='Prefix for match keys. If empty, uses same as value.',
+    )
 
     def validate(self, attrs):
         if attrs['end'] <= attrs['start']:
@@ -54,7 +60,7 @@ class QRCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = QRCode
         fields = [
-            'id', 'uuid', 'value', 'label', 'category',
+            'id', 'uuid', 'value', 'match_key', 'label', 'category',
             'qr_image_base64', 'created_by', 'created_by_username',
             'created_at', 'is_active',
         ]
@@ -70,6 +76,6 @@ class QRCodeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = QRCode
         fields = [
-            'id', 'uuid', 'value', 'label', 'category',
+            'id', 'uuid', 'value', 'match_key', 'label', 'category',
             'created_by_username', 'created_at', 'is_active',
         ]

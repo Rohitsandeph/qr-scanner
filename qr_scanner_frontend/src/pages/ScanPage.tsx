@@ -82,10 +82,15 @@ export function ScanPage() {
 
         {phase === 'SCAN_SECOND' && (
           <>
-            <p className="instruction">Step 2: Scan the second QR code</p>
+            <p className="instruction">Step 2: Scan the second QR code to verify</p>
             {session && (
-              <div className="extracted-id-badge">
-                ID from QR #1: <strong>{session.extractedId}</strong>
+              <div className="match-key-info">
+                {session.foundInSystem && session.qrLabel && (
+                  <div className="system-badge">QR found in system: {session.qrLabel}</div>
+                )}
+                <div className="extracted-id-badge">
+                  Searching for: <strong>{session.matchKey}</strong>
+                </div>
               </div>
             )}
             <QRScanner onScan={handleSecondScan} isActive={!loading} />

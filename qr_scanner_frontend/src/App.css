@@ -821,6 +821,41 @@
   flex-wrap: wrap;
 }
 
+.field-hint {
+  display: block;
+  color: #666;
+  font-size: 0.75rem;
+  margin-top: 0.3rem;
+}
+
+.match-key-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.system-badge {
+  background: #2d6a4f;
+  color: #52b788;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.result-message {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.modal-match-key {
+  color: #646cff;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
 /* ===== Original Scanner Styles ===== */
 .app {
   min-height: 100vh;

@@ -12,6 +12,7 @@ export function GenerateQRPage() {
 
   // Single mode
   const [value, setValue] = useState('');
+  const [matchKey, setMatchKey] = useState('');
   const [label, setLabel] = useState('');
   const [category, setCategory] = useState<QRCategory>('custom');
   const [generated, setGenerated] = useState<QRCodeItem | null>(null);
@@ -19,6 +20,7 @@ export function GenerateQRPage() {
   // Bulk mode
   const [bulkMode, setBulkMode] = useState(false);
   const [prefix, setPrefix] = useState('');
+  const [matchKeyPrefix, setMatchKeyPrefix] = useState('');
   const [start, setStart] = useState(1);
   const [end, setEnd] = useState(10);
   const [padding, setPadding] = useState(3);
@@ -34,7 +36,7 @@ export function GenerateQRPage() {
     setLoading(true);
     setGenerated(null);
     try {
-      const qr = await generateQRCode({ value, label, category });
+      const qr = await generateQRCode({ value, match_key: matchKey || value, label, category });
       setGenerated(qr);
     } catch {
       setError('Failed to generate QR code.');
@@ -49,7 +51,7 @@ export function GenerateQRPage() {
     setLoading(true);
     setBulkCount(null);
     try {
-      const result = await bulkGenerateQRCodes({ prefix, start, end, padding, category });
+      const result = await bulkGenerateQRCodes({ prefix, start, end, padding, category, match_key_prefix: matchKeyPrefix });
       setBulkCount(result.count);
     } catch {
       setError('Failed to bulk generate. Max 500 at a time.');
@@ -128,13 +130,27 @@ export function GenerateQRPage() {
           <div className="generate-layout">
             <form className="generate-form" onSubmit={handleGenerate}>
               <div className="form-group">
-                <label>Value (data to encode)</label>
+                <label>Value (data to encode in QR)</label>
                 <input
                   value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  placeholder="e.g., COIL-4521 or https://example.com/item/123"
+                  onChange={(e) => {
+                    setValue(e.target.value);
+                    if (!matchKey) setMatchKey('');
+                  }}
+                  placeholder="e.g., COIL-4521-BATCH-2024-LOT-A-500KG"
                   required
                 />
+              </div>
+              <div className="form-group">
+                <label>Match Key (text to search for when scanning)</label>
+                <input
+                  value={matchKey}
+                  onChange={(e) => setMatchKey(e.target.value)}
+                  placeholder={value || 'e.g., COIL-4521'}
+                />
+                <span className="field-hint">
+                  When scanning, this text will be searched in QR #2. Leave empty to use the full value.
+                </span>
               </div>
               <div className="form-group">
                 <label>Label (optional)</label>
@@ -194,13 +210,24 @@ export function GenerateQRPage() {
           <div className="bulk-section">
             <form className="generate-form" onSubmit={handleBulkGenerate}>
               <div className="form-group">
-                <label>Prefix</label>
+                <label>Value Prefix</label>
                 <input
                   value={prefix}
                   onChange={(e) => setPrefix(e.target.value)}
-                  placeholder="e.g., COIL-"
+                  placeholder="e.g., COIL-4521-BATCH-2024-"
                   required
                 />
+              </div>
+              <div className="form-group">
+                <label>Match Key Prefix (optional)</label>
+                <input
+                  value={matchKeyPrefix}
+                  onChange={(e) => setMatchKeyPrefix(e.target.value)}
+                  placeholder={prefix || 'e.g., COIL-'}
+                />
+                <span className="field-hint">
+                  If different from value prefix. Leave empty to use value as match key.
+                </span>
               </div>
               <div className="form-row">
                 <div className="form-group">

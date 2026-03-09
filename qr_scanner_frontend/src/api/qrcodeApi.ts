@@ -3,6 +3,7 @@ import { apiClient } from './scannerApi';
 
 export const generateQRCode = async (data: {
   value: string;
+  match_key: string;
   label: string;
   category: QRCategory;
 }): Promise<QRCodeItem> => {

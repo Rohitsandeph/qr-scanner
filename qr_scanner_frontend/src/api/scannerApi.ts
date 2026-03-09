@@ -47,6 +47,9 @@ export const submitFirstScan = async (qrData: string): Promise<ScanSession> => {
   return {
     sessionId: response.data.session_id,
     extractedId: response.data.extracted_id,
+    matchKey: response.data.match_key,
+    qrLabel: response.data.qr_label,
+    foundInSystem: response.data.found_in_system,
   };
 };
 
@@ -60,6 +63,9 @@ export const submitMatchScan = async (
   });
   return {
     isMatch: response.data.is_match,
+    matchKey: response.data.match_key,
+    message: response.data.message,
+    matchedPortion: response.data.matched_portion,
     firstId: response.data.first_id,
     secondId: response.data.second_id,
     secondData: response.data.second_data,

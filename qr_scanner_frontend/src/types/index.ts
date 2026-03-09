@@ -3,10 +3,16 @@ export type ScanPhase = 'SCAN_FIRST' | 'SCAN_SECOND' | 'RESULT';
 export interface ScanSession {
   sessionId: string;
   extractedId: string;
+  matchKey: string;
+  qrLabel: string;
+  foundInSystem: boolean;
 }
 
 export interface MatchResult {
   isMatch: boolean;
+  matchKey: string;
+  message: string;
+  matchedPortion: string | null;
   firstId: string;
   secondId: string;
   secondData: string;
@@ -16,6 +22,7 @@ export interface ScanHistoryItem {
   id: number;
   session_id: string;
   first_qr_id: string;
+  match_key: string;
   is_match: boolean | null;
   created_at: string;
 }
@@ -52,6 +59,7 @@ export interface QRCodeItem {
   id: number;
   uuid: string;
   value: string;
+  match_key: string;
   label: string;
   category: QRCategory;
   qr_image_base64?: string;
@@ -66,4 +74,5 @@ export interface BulkGenerateRequest {
   end: number;
   padding: number;
   category: QRCategory;
+  match_key_prefix: string;
 }

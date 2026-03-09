@@ -174,6 +174,9 @@ export function QRCodeGalleryPage() {
                 </div>
                 <h3>{selectedQR.label || 'Untitled'}</h3>
                 <p className="modal-value">{selectedQR.value}</p>
+                {selectedQR.match_key && (
+                  <p className="modal-match-key">Match Key: <strong>{selectedQR.match_key}</strong></p>
+                )}
                 <div className="modal-meta">
                   <span className={`category-tag cat-${selectedQR.category}`}>
                     {selectedQR.category.replace('_', ' ')}
