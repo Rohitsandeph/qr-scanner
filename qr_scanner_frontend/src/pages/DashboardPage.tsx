@@ -31,12 +31,18 @@ export function DashboardPage() {
           </div>
 
           {(user.role === 'admin' || user.role === 'generator') && (
-            <div className="dashboard-card disabled">
+            <div className="dashboard-card" onClick={() => navigate('/generate')}>
               <div className="card-icon">&#9881;</div>
               <h3>Generate QR Codes</h3>
-              <p>Coming in Phase 2</p>
+              <p>Create single or bulk QR codes</p>
             </div>
           )}
+
+          <div className="dashboard-card" onClick={() => navigate('/qrcodes')}>
+            <div className="card-icon">&#128444;</div>
+            <h3>QR Code Gallery</h3>
+            <p>View, print, download QR codes</p>
+          </div>
 
           {user.role === 'admin' && (
             <div className="dashboard-card" onClick={() => navigate('/users')}>

@@ -45,3 +45,25 @@ export interface LoginResponse {
   refresh: string;
   user: User;
 }
+
+export type QRCategory = 'coil' | 'object' | 'produced_item' | 'custom';
+
+export interface QRCodeItem {
+  id: number;
+  uuid: string;
+  value: string;
+  label: string;
+  category: QRCategory;
+  qr_image_base64?: string;
+  created_by_username: string | null;
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface BulkGenerateRequest {
+  prefix: string;
+  start: number;
+  end: number;
+  padding: number;
+  category: QRCategory;
+}

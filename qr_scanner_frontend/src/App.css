@@ -450,6 +450,377 @@
   padding: 2rem;
 }
 
+/* ===== Generate QR Page ===== */
+.generate-page {
+  min-height: 100vh;
+  background: #0f0f0f;
+  color: #fff;
+}
+
+.generate-page .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.generate-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #333;
+  width: fit-content;
+}
+
+.mode-btn {
+  padding: 0.5rem 1.5rem;
+  background: #1a1a2e;
+  color: #aaa;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.mode-btn.active {
+  background: #646cff;
+  color: #fff;
+}
+
+.generate-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.generate-form {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.preview-section {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.preview-section h3 {
+  margin: 0 0 1rem;
+  color: #aaa;
+}
+
+.qr-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qr-preview svg {
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.preview-label {
+  font-weight: bold;
+  font-size: 1rem;
+  margin: 0.5rem 0 0;
+}
+
+.preview-value {
+  color: #888;
+  font-size: 0.85rem;
+  word-break: break-all;
+  margin: 0;
+}
+
+.preview-placeholder {
+  color: #555;
+  padding: 3rem 1rem;
+  border: 2px dashed #333;
+  border-radius: 8px;
+}
+
+.generated-actions {
+  margin-top: 1.5rem;
+}
+
+.success-msg {
+  color: #52b788;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-print {
+  background: #457b9d;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-print:hover {
+  background: #3a6d8c;
+}
+
+.btn-download {
+  background: #2a9d8f;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-download:hover {
+  background: #238b7e;
+}
+
+.btn-gallery {
+  background: #646cff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-gallery:hover {
+  background: #535bf2;
+}
+
+.bulk-section {
+  max-width: 500px;
+}
+
+.bulk-section .generate-form {
+  margin-bottom: 1rem;
+}
+
+.bulk-preview-text {
+  background: #0f0f0f;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* ===== QR Code Gallery ===== */
+.gallery-page {
+  min-height: 100vh;
+  background: #0f0f0f;
+  color: #fff;
+}
+
+.gallery-page .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gallery-filters {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #646cff;
+}
+
+.filter-select {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  padding: 0 1.5rem 2rem;
+}
+
+.gallery-card {
+  background: #1a1a2e;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.gallery-card:hover {
+  border-color: #646cff;
+  transform: translateY(-2px);
+}
+
+.gallery-card-header {
+  margin-bottom: 0.5rem;
+}
+
+.category-tag {
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.cat-coil { background: #457b9d; color: #fff; }
+.cat-object { background: #e76f51; color: #fff; }
+.cat-produced_item { background: #2a9d8f; color: #fff; }
+.cat-custom { background: #555; color: #fff; }
+
+.gallery-card-body {
+  margin-bottom: 0.75rem;
+}
+
+.gallery-label {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0 0 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gallery-value {
+  color: #888;
+  font-size: 0.8rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gallery-card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.empty-gallery {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #888;
+}
+
+.empty-gallery .create-btn {
+  margin-top: 1rem;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: #1a1a2e;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: #fff;
+}
+
+.modal-qr-image img {
+  max-width: 250px;
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+  margin-bottom: 1rem;
+}
+
+.modal-value {
+  color: #888;
+  font-size: 0.85rem;
+  word-break: break-all;
+  margin: 0.5rem 0;
+}
+
+.modal-meta {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #666;
+  margin: 1rem 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
 /* ===== Original Scanner Styles ===== */
 .app {
   min-height: 100vh;
@@ -718,5 +1089,18 @@
 
   .action-cell {
     flex-direction: column;
+  }
+
+  .generate-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery-filters {
+    flex-direction: column;
+  }
+
+  .page-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 }

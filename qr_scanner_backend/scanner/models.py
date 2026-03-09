@@ -23,3 +23,35 @@ class ScanSession(models.Model):
 
     def __str__(self):
         return f"ScanSession {self.session_id} - Match: {self.is_match}"
+
+
+class QRCode(models.Model):
+    class Category(models.TextChoices):
+        COIL = 'coil', 'Coil'
+        OBJECT = 'object', 'Object'
+        PRODUCED_ITEM = 'produced_item', 'Produced Item'
+        CUSTOM = 'custom', 'Custom'
+
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    value = models.TextField(help_text='Data encoded in the QR code')
+    label = models.CharField(max_length=255, blank=True, default='')
+    category = models.CharField(
+        max_length=20,
+        choices=Category.choices,
+        default=Category.CUSTOM,
+    )
+    qr_image_base64 = models.TextField(help_text='Base64-encoded PNG image')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='qr_codes',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"QR: {self.label or self.value[:50]} ({self.category})"
