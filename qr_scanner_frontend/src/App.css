@@ -78,6 +78,32 @@
   border-color: #646cff;
 }
 
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 3.5rem;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #646cff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+}
+
+.toggle-password-btn:hover {
+  color: #8b92ff;
+}
+
 .login-btn {
   width: 100%;
   padding: 0.75rem;
