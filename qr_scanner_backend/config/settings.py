@@ -88,6 +88,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database: use DATABASE_URL env var if set, otherwise local PostgreSQL
+# Strip channel_binding param which psycopg2 doesn't support
+import re
+_db_url = os.environ.get('DATABASE_URL', 'postgresql://localhost:5432/qr_scanner')
+_db_url = re.sub(r'[&?]channel_binding=[^&]*', '', _db_url)
+os.environ['DATABASE_URL'] = _db_url
+
 DATABASES = {
     'default': dj_database_url.config(
         default='postgresql://localhost:5432/qr_scanner',
