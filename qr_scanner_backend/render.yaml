@@ -11,7 +11,7 @@ services:
     plan: free
     rootDir: qr_scanner_backend
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn config.wsgi:application
+    startCommand: chmod +x start.sh && ./start.sh
     envVars:
       - key: DEBUG
         value: "False"
