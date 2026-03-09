@@ -1,4 +1,4 @@
-import { ScanPhase } from '../types';
+import type { ScanPhase } from '../types';
 
 interface StepIndicatorProps {
   phase: ScanPhase;

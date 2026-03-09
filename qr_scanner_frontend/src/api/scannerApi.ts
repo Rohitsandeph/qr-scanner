@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ScanSession, MatchResult, ScanHistoryItem } from '../types';
+import type { ScanSession, MatchResult, ScanHistoryItem } from '../types';
 
 const api = axios.create({
   baseURL: '/api',

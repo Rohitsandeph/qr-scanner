@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ScanPhase, ScanSession, MatchResult } from './types';
+import type { ScanPhase, ScanSession, MatchResult } from './types';
 import { submitFirstScan, submitMatchScan } from './api/scannerApi';
 import { QRScanner } from './components/QRScanner';
 import { ScanResult } from './components/ScanResult';

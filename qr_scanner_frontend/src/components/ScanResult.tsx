@@ -1,4 +1,4 @@
-import { MatchResult } from '../types';
+import type { MatchResult } from '../types';
 
 interface ScanResultProps {
   result: MatchResult;
