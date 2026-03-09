@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ScanSession, MatchResult, ScanHistoryItem } from '../types';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: '/api',
 });
 
 export const submitFirstScan = async (qrData: string): Promise<ScanSession> => {

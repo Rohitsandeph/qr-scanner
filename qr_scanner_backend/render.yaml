@@ -1,8 +1,9 @@
 services:
   - type: web
-    name: qr-scanner-api
+    name: qr-scanner
     runtime: python
     plan: free
+    rootDir: qr_scanner_backend
     buildCommand: chmod +x build.sh && ./build.sh
     startCommand: gunicorn config.wsgi:application
     envVars:
@@ -12,5 +13,5 @@ services:
         generateValue: true
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
-      - key: FRONTEND_URL
-        sync: false
+      - key: NODE_VERSION
+        value: "22"

@@ -4,6 +4,7 @@ __pycache__/
 *.sqlite3
 qr_scanner_backend/venv/
 qr_scanner_backend/staticfiles/
+qr_scanner_backend/frontend_dist/
 
 # Node
 qr_scanner_frontend/node_modules/
