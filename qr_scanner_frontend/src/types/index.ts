@@ -19,3 +19,29 @@ export interface ScanHistoryItem {
   is_match: boolean | null;
   created_at: string;
 }
+
+export type UserRole = 'admin' | 'generator' | 'scanner';
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: UserRole;
+  is_active: boolean;
+  date_joined: string;
+  created_by?: number | null;
+  created_by_username?: string | null;
+}
+
+export interface AuthTokens {
+  access: string;
+  refresh: string;
+}
+
+export interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: User;
+}

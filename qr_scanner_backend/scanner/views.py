@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -10,6 +11,8 @@ from .utils import extract_id, check_match
 
 
 class FirstScanView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = FirstScanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -20,6 +23,7 @@ class FirstScanView(APIView):
         session = ScanSession.objects.create(
             first_qr_data=qr_data,
             first_qr_id=extracted_id,
+            scanned_by=request.user,
         )
 
         return Response({
@@ -29,6 +33,8 @@ class FirstScanView(APIView):
 
 
 class MatchScanView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = MatchScanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -62,5 +68,10 @@ class MatchScanView(APIView):
 
 
 class ScanHistoryView(ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = ScanSessionSerializer
-    queryset = ScanSession.objects.all().order_by('-created_at')
+
+    def get_queryset(self):
+        return ScanSession.objects.filter(
+            scanned_by=self.request.user,
+        ).order_by('-created_at')
