@@ -65,7 +65,6 @@ export const submitMatchScan = async (
     isMatch: response.data.is_match,
     matchKey: response.data.match_key,
     message: response.data.message,
-    matchedPortion: response.data.matched_portion,
     firstId: response.data.first_id,
     secondId: response.data.second_id,
     secondData: response.data.second_data,

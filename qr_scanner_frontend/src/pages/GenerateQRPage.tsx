@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import type { QRCategory, QRCodeItem } from '../types';
+import type { QRCodeItem } from '../types';
 import { generateQRCode } from '../api/qrcodeApi';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,14 +11,33 @@ export function GenerateQRPage() {
   const { user, logout } = useAuth();
 
   const [value, setValue] = useState('');
-  const [matchKey, setMatchKey] = useState('');
+  const [matchKeys, setMatchKeys] = useState<string[]>([]);
+  const [matchKeyInput, setMatchKeyInput] = useState('');
   const [label, setLabel] = useState('');
-  const [category, setCategory] = useState<QRCategory>('custom');
   const [generated, setGenerated] = useState<QRCodeItem | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
+
+  const addMatchKey = () => {
+    const trimmed = matchKeyInput.trim();
+    if (trimmed && !matchKeys.includes(trimmed)) {
+      setMatchKeys([...matchKeys, trimmed]);
+    }
+    setMatchKeyInput('');
+  };
+
+  const handleMatchKeyKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addMatchKey();
+    }
+  };
+
+  const removeMatchKey = (index: number) => {
+    setMatchKeys(matchKeys.filter((_, i) => i !== index));
+  };
 
   const handleGenerate = async (e: FormEvent) => {
     e.preventDefault();
@@ -26,7 +45,8 @@ export function GenerateQRPage() {
     setLoading(true);
     setGenerated(null);
     try {
-      const qr = await generateQRCode({ value, match_key: matchKey || value, label, category });
+      const matchKeyValue = matchKeys.length > 0 ? matchKeys.join(', ') : value;
+      const qr = await generateQRCode({ value, match_key: matchKeyValue, label });
       setGenerated(qr);
     } catch (err: any) {
       const detail = err?.response?.data?.detail || err?.response?.data?.match_key?.[0] || JSON.stringify(err?.response?.data) || err.message;
@@ -93,23 +113,31 @@ export function GenerateQRPage() {
               <label>Value (data to encode in QR)</label>
               <input
                 value={value}
-                onChange={(e) => {
-                  setValue(e.target.value);
-                  if (!matchKey) setMatchKey('');
-                }}
+                onChange={(e) => setValue(e.target.value)}
                 placeholder="e.g., COIL-4521-BATCH-2024-LOT-A-500KG"
                 required
               />
             </div>
             <div className="form-group">
-              <label>Match Key (text to search for when scanning)</label>
-              <input
-                value={matchKey}
-                onChange={(e) => setMatchKey(e.target.value)}
-                placeholder={value || 'e.g., COIL-4521'}
-              />
+              <label>Match Keywords (press Enter to add each keyword)</label>
+              <div className="match-keys-container">
+                {matchKeys.map((key, i) => (
+                  <span key={i} className="match-key-tag">
+                    {key}
+                    <button type="button" onClick={() => removeMatchKey(i)}>&times;</button>
+                  </span>
+                ))}
+                <input
+                  className="match-key-input"
+                  value={matchKeyInput}
+                  onChange={(e) => setMatchKeyInput(e.target.value)}
+                  onKeyDown={handleMatchKeyKeyDown}
+                  onBlur={addMatchKey}
+                  placeholder={matchKeys.length === 0 ? 'e.g., 4521' : 'Add another keyword...'}
+                />
+              </div>
               <span className="field-hint">
-                When scanning, this text will be searched in QR #2. Leave empty to use the full value.
+                When scanning, ALL keywords must be found in QR #2 for a match. Leave empty to use the full value.
               </span>
             </div>
             <div className="form-group">
@@ -119,15 +147,6 @@ export function GenerateQRPage() {
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="e.g., Coil #4521"
               />
-            </div>
-            <div className="form-group">
-              <label>Category</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value as QRCategory)}>
-                <option value="custom">Custom</option>
-                <option value="coil">Coil</option>
-                <option value="object">Object</option>
-                <option value="produced_item">Produced Item</option>
-              </select>
             </div>
             <button type="submit" className="login-btn" disabled={loading || !value}>
               {loading ? 'Generating...' : 'Generate QR Code'}

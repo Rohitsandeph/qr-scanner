@@ -100,7 +100,6 @@ class MatchScanView(APIView):
             'is_match': result['is_match'],
             'match_key': session.match_key,
             'message': result['message'],
-            'matched_portion': result['matched_portion'],
             'first_id': session.first_qr_id,
             'second_id': second_id,
             'second_data': qr_data,
@@ -129,7 +128,6 @@ class QRCodeGenerateView(APIView):
         value = serializer.validated_data['value']
         match_key = serializer.validated_data['match_key']
         label = serializer.validated_data.get('label', '')
-        category = serializer.validated_data.get('category', 'custom')
 
         qr_image_base64 = generate_qr_base64(value)
 
@@ -137,7 +135,6 @@ class QRCodeGenerateView(APIView):
             value=value,
             match_key=match_key,
             label=label,
-            category=category,
             qr_image_base64=qr_image_base64,
             created_by=request.user,
         )

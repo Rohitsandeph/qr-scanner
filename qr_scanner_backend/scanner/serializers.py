@@ -19,13 +19,8 @@ class ScanSessionSerializer(serializers.ModelSerializer):
 
 class QRCodeGenerateSerializer(serializers.Serializer):
     value = serializers.CharField()
-    match_key = serializers.CharField(help_text='String to search for when matching')
+    match_key = serializers.CharField(help_text='Comma-separated keywords to search for when matching')
     label = serializers.CharField(required=False, default='', allow_blank=True)
-    category = serializers.ChoiceField(
-        choices=QRCode.Category.choices,
-        required=False,
-        default='custom',
-    )
 
 
 class QRCodeSerializer(serializers.ModelSerializer):
@@ -36,7 +31,7 @@ class QRCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = QRCode
         fields = [
-            'id', 'uuid', 'value', 'match_key', 'label', 'category',
+            'id', 'uuid', 'value', 'match_key', 'label',
             'qr_image_base64', 'created_by', 'created_by_username',
             'created_at', 'is_active',
         ]

@@ -34,32 +34,31 @@ def extract_id(qr_data: str) -> str:
 
 def check_match(match_key: str, qr2_raw_data: str) -> dict:
     """
-    Search match_key in QR #2's entire raw string (case-insensitive).
-    Returns dict with is_match, message, and matched_portion.
+    Split match_key by comma into keywords. ALL keywords must be found
+    in QR #2's raw string (case-insensitive) for a match.
+    Returns dict with is_match and message.
     """
-    key = match_key.strip()
+    keywords = [k.strip() for k in match_key.split(',') if k.strip()]
     data = qr2_raw_data.strip()
 
-    if not key:
+    if not keywords:
         return {
             'is_match': False,
             'message': 'No match key provided',
-            'matched_portion': None,
         }
 
-    # Case-insensitive search
-    pos = data.lower().find(key.lower())
+    data_lower = data.lower()
+    missing = [k for k in keywords if k.lower() not in data_lower]
 
-    if pos != -1:
-        matched = data[pos:pos + len(key)]
+    if not missing:
+        kw_display = '", "'.join(keywords)
         return {
             'is_match': True,
-            'message': f'Match key "{key}" found in QR #2',
-            'matched_portion': matched,
+            'message': f'All keywords ("{kw_display}") found in QR #2',
         }
 
+    missing_display = '", "'.join(missing)
     return {
         'is_match': False,
-        'message': f'Match key "{key}" not found in QR #2',
-        'matched_portion': None,
+        'message': f'Keywords not found in QR #2: "{missing_display}"',
     }

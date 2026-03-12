@@ -12,7 +12,6 @@ export interface MatchResult {
   isMatch: boolean;
   matchKey: string;
   message: string;
-  matchedPortion: string | null;
   firstId: string;
   secondId: string;
   secondData: string;
@@ -53,15 +52,12 @@ export interface LoginResponse {
   user: User;
 }
 
-export type QRCategory = 'coil' | 'object' | 'produced_item' | 'custom';
-
 export interface QRCodeItem {
   id: number;
   uuid: string;
   value: string;
   match_key: string;
   label: string;
-  category: QRCategory;
   qr_image_base64?: string;
   created_by_username: string | null;
   created_at: string;

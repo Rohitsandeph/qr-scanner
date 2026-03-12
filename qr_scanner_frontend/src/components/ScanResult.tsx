@@ -21,12 +21,6 @@ export function ScanResult({ result, onReset }: ScanResultProps) {
           <span className="result-label">Match Key:</span>
           <span className="result-value">{result.matchKey}</span>
         </div>
-        {result.isMatch && result.matchedPortion && (
-          <div className="result-row">
-            <span className="result-label">Found in QR #2:</span>
-            <span className="result-value match-text">{result.matchedPortion}</span>
-          </div>
-        )}
         <div className="result-row">
           <span className="result-label">QR #2 Data:</span>
           <span className="result-value">{result.secondData}</span>

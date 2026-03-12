@@ -8,8 +8,8 @@ class ScanSession(models.Model):
     session_id = models.UUIDField(default=uuid.uuid4, unique=True)
     first_qr_data = models.TextField()
     first_qr_id = models.CharField(max_length=255)
-    match_key = models.CharField(max_length=255, blank=True, default='',
-                                 help_text='The key used to search in QR #2')
+    match_key = models.TextField(blank=True, default='',
+                                help_text='The key(s) used to search in QR #2')
     second_qr_data = models.TextField(blank=True, null=True)
     second_qr_id = models.CharField(max_length=255, blank=True, null=True)
     is_match = models.BooleanField(null=True)
@@ -37,10 +37,9 @@ class QRCode(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     value = models.TextField(help_text='Data encoded in the QR code')
-    match_key = models.CharField(
-        max_length=255,
+    match_key = models.TextField(
         default='',
-        help_text='The string to search for when matching with another QR code',
+        help_text='Comma-separated keywords to search for when matching with another QR code',
     )
     label = models.CharField(max_length=255, blank=True, default='')
     category = models.CharField(
