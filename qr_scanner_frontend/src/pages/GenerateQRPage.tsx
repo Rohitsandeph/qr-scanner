@@ -38,8 +38,9 @@ export function GenerateQRPage() {
     try {
       const qr = await generateQRCode({ value, match_key: matchKey || value, label, category });
       setGenerated(qr);
-    } catch {
-      setError('Failed to generate QR code.');
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || err?.response?.data?.match_key?.[0] || JSON.stringify(err?.response?.data) || err.message;
+      setError(`Failed to generate QR code: ${detail}`);
     } finally {
       setLoading(false);
     }
