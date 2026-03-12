@@ -20,7 +20,7 @@ class ScanSessionSerializer(serializers.ModelSerializer):
 class QRCodeGenerateSerializer(serializers.Serializer):
     value = serializers.CharField()
     match_key = serializers.CharField(help_text='String to search for when matching')
-    label = serializers.CharField(required=False, default='')
+    label = serializers.CharField(required=False, default='', allow_blank=True)
     category = serializers.ChoiceField(
         choices=QRCode.Category.choices,
         required=False,
