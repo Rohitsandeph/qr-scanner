@@ -23,8 +23,17 @@ export function ScanPage() {
       const scanSession = await submitFirstScan(qrData);
       setSession(scanSession);
       setPhase('SCAN_SECOND');
-    } catch {
-      setError('Failed to process first QR code. Please try again.');
+    } catch (err: unknown) {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'response' in err &&
+        (err as { response?: { data?: { error?: string } } }).response?.data?.error
+      ) {
+        setError((err as { response: { data: { error: string } } }).response.data.error);
+      } else {
+        setError('Failed to process first QR code. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -82,14 +91,17 @@ export function ScanPage() {
 
         {phase === 'SCAN_SECOND' && (
           <>
-            <p className="instruction">Step 2: Scan the second QR code to verify</p>
+            <p className="instruction">Step 2: Now scan QR #2 to verify</p>
             {session && (
               <div className="match-key-info">
-                {session.foundInSystem && session.qrLabel && (
+                {session.qrLabel && (
                   <div className="system-badge">QR found in system: {session.qrLabel}</div>
                 )}
                 <div className="extracted-id-badge">
-                  Searching for: <strong>{session.matchKey}</strong>
+                  Searching for:{' '}
+                  {session.matchKey.split(',').map((key) => (
+                    <span key={key} className="match-key-tag">{key.trim()}</span>
+                  ))}
                 </div>
               </div>
             )}

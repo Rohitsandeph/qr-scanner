@@ -50,6 +50,11 @@ class FirstScanView(APIView):
             except Exception:
                 pass
 
+        if not qr_found_in_db:
+            return Response({
+                'error': 'This QR code is not registered in the system. It may be QR #2. Please scan QR #1 first.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         session = ScanSession.objects.create(
             first_qr_data=qr_data,
             first_qr_id=extracted_id,
