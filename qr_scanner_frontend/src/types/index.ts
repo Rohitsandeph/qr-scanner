@@ -68,11 +68,3 @@ export interface QRCodeItem {
   is_active: boolean;
 }
 
-export interface BulkGenerateRequest {
-  prefix: string;
-  start: number;
-  end: number;
-  padding: number;
-  category: QRCategory;
-  match_key_prefix: string;
-}
