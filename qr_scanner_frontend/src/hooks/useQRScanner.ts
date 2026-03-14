@@ -9,113 +9,112 @@ interface UseQRScannerOptions {
 export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const animFrameRef = useRef<number>(0);
+  const onScanRef = useRef(onScan);
   const lastScannedRef = useRef<string>('');
   const lastScannedTimeRef = useRef<number>(0);
-  const onScanRef = useRef(onScan);
 
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Keep onScan ref up to date without causing re-renders
   useEffect(() => {
     onScanRef.current = onScan;
   }, [onScan]);
 
-  const stopScanning = useCallback(() => {
-    if (animFrameRef.current) {
-      cancelAnimationFrame(animFrameRef.current);
-      animFrameRef.current = 0;
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    setIsScanning(false);
-  }, []);
+  const retry = useCallback(() => setRetryCount((c) => c + 1), []);
 
-  const startScanning = useCallback(async () => {
-    // Stop any existing scan first
-    if (animFrameRef.current) {
-      cancelAnimationFrame(animFrameRef.current);
-      animFrameRef.current = 0;
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
+  useEffect(() => {
+    if (!active) return;
 
-    setError(null);
-    setIsScanning(false);
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    let animFrame = 0;
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      setIsScanning(true);
-      lastScannedRef.current = '';
+    async function start() {
+      setError(null);
 
-      const scanFrame = () => {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-          animFrameRef.current = requestAnimationFrame(scanFrame);
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        });
+
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
           return;
         }
 
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return;
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-        if (code && code.data) {
-          const now = Date.now();
-          if (
-            code.data !== lastScannedRef.current ||
-            now - lastScannedTimeRef.current > 2000
-          ) {
-            lastScannedRef.current = code.data;
-            lastScannedTimeRef.current = now;
-            try {
-              navigator.vibrate?.(200);
-            } catch {}
-            onScanRef.current(code.data);
-            return;
-          }
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
         }
 
-        animFrameRef.current = requestAnimationFrame(scanFrame);
-      };
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
 
-      animFrameRef.current = requestAnimationFrame(scanFrame);
-    } catch {
-      setError('Camera access denied. Please allow camera permissions and try again.');
+        setIsScanning(true);
+        lastScannedRef.current = '';
+
+        const scanFrame = () => {
+          if (cancelled) return;
+
+          const video = videoRef.current;
+          const canvas = canvasRef.current;
+          if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+            animFrame = requestAnimationFrame(scanFrame);
+            return;
+          }
+
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (!ctx) return;
+
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+          if (code && code.data) {
+            const now = Date.now();
+            if (
+              code.data !== lastScannedRef.current ||
+              now - lastScannedTimeRef.current > 2000
+            ) {
+              lastScannedRef.current = code.data;
+              lastScannedTimeRef.current = now;
+              try {
+                navigator.vibrate?.(200);
+              } catch {}
+              onScanRef.current(code.data);
+              return;
+            }
+          }
+
+          animFrame = requestAnimationFrame(scanFrame);
+        };
+
+        animFrame = requestAnimationFrame(scanFrame);
+      } catch {
+        if (!cancelled) {
+          setError(
+            'Camera access denied. Please allow camera permissions and try again.'
+          );
+        }
+      }
     }
-  }, []);
 
-  const retry = useCallback(() => {
-    startScanning();
-  }, [startScanning]);
+    start();
 
-  useEffect(() => {
-    if (active) {
-      startScanning();
-    } else {
-      stopScanning();
-    }
-    return () => stopScanning();
-  }, [active, startScanning, stopScanning]);
+    return () => {
+      cancelled = true;
+      if (animFrame) cancelAnimationFrame(animFrame);
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      setIsScanning(false);
+    };
+  }, [active, retryCount]);
 
   return { videoRef, canvasRef, isScanning, error, retry };
 }
