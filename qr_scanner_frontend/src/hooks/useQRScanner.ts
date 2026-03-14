@@ -56,6 +56,13 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
       }
 
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setError(
+            'Camera access is not available. Make sure you are using HTTPS and a supported browser.'
+          );
+          return;
+        }
+
         // Try with environment camera first, fall back to any camera
         try {
           stream = await navigator.mediaDevices.getUserMedia({
@@ -146,11 +153,15 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
       } catch (err) {
         if (cancelled) return;
 
+        const errName = err instanceof DOMException ? err.name : 'Unknown';
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.error('Camera error:', errName, errMsg);
+
         if (err instanceof DOMException) {
           switch (err.name) {
             case 'NotAllowedError':
               setError(
-                'Camera permission was denied. Please go to your browser settings, allow camera access for this site, then tap "Try Again".'
+                'Camera permission was denied. Please go to your browser site settings, allow camera access, then tap "Try Again".'
               );
               break;
             case 'NotFoundError':
@@ -162,10 +173,10 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
               );
               break;
             default:
-              setError(`Camera error: ${err.message}`);
+              setError(`Camera error (${err.name}): ${err.message}`);
           }
         } else {
-          setError('Failed to access camera. Please try again.');
+          setError(`Failed to access camera: ${errMsg}`);
         }
       }
     }
