@@ -6,7 +6,7 @@ interface QRScannerProps {
 }
 
 export function QRScanner({ onScan, isActive }: QRScannerProps) {
-  const { videoRef, canvasRef, isScanning, error } = useQRScanner({
+  const { videoRef, canvasRef, isScanning, error, retry } = useQRScanner({
     onScan,
     active: isActive,
   });
@@ -16,6 +16,9 @@ export function QRScanner({ onScan, isActive }: QRScannerProps) {
       <div className="scanner-error">
         <div className="error-icon">!</div>
         <p>{error}</p>
+        <button className="scan-trigger-btn" onClick={retry} style={{ marginTop: '1rem' }}>
+          Try Again
+        </button>
       </div>
     );
   }

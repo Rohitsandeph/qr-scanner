@@ -81,9 +81,14 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
       lastScannedRef.current = '';
       animFrameRef.current = requestAnimationFrame(scanFrame);
     } catch {
-      setError('Camera access denied. Please allow camera permissions.');
+      setError('Camera access denied. Please allow camera permissions and try again.');
     }
   }, [scanFrame]);
+
+  const retry = useCallback(() => {
+    stopScanning();
+    startScanning();
+  }, [stopScanning, startScanning]);
 
   useEffect(() => {
     if (active) {
@@ -94,5 +99,5 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
     return () => stopScanning();
   }, [active, startScanning, stopScanning]);
 
-  return { videoRef, canvasRef, isScanning, error };
+  return { videoRef, canvasRef, isScanning, error, retry };
 }
