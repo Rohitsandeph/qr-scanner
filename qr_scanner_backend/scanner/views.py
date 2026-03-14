@@ -71,6 +71,12 @@ class MatchScanView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # Reject if the same QR is scanned again
+        if qr_data.strip() == session.first_qr_data.strip():
+            return Response({
+                'error': 'You scanned the same QR code as QR #1. Please scan a different QR #2.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         second_id = extract_id(qr_data)
 
         # Use the match_key from QR #1 to search in QR #2's raw data
