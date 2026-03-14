@@ -48,8 +48,6 @@ export const submitFirstScan = async (qrData: string): Promise<ScanSession> => {
     sessionId: response.data.session_id,
     extractedId: response.data.extracted_id,
     matchKey: response.data.match_key,
-    qrLabel: response.data.qr_label,
-    foundInSystem: response.data.found_in_system,
   };
 };
 

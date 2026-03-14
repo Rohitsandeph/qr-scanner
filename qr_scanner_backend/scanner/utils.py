@@ -2,6 +2,20 @@ import json
 from urllib.parse import urlparse, parse_qs
 
 
+def parse_qr1_data(qr_data: str) -> dict | None:
+    """
+    Parse QR1 JSON format: {"data": "...", "match": "keyword1, keyword2"}
+    Returns dict with 'data' and 'match' keys, or None if not valid QR1 format.
+    """
+    try:
+        parsed = json.loads(qr_data)
+        if isinstance(parsed, dict) and 'match' in parsed:
+            return parsed
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return None
+
+
 def extract_id(qr_data: str) -> str:
     """Extract the most meaningful ID from QR data (used as fallback)."""
     # Try JSON parse

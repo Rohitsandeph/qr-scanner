@@ -4,8 +4,6 @@ export interface ScanSession {
   sessionId: string;
   extractedId: string;
   matchKey: string;
-  qrLabel: string;
-  foundInSystem: boolean;
 }
 
 export interface MatchResult {

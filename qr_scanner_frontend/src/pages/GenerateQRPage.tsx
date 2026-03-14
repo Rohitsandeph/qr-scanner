@@ -157,7 +157,7 @@ export function GenerateQRPage() {
             <h3>Preview</h3>
             {value ? (
               <div className="qr-preview">
-                <QRCodeSVG value={value} size={200} level="H" />
+                <QRCodeSVG value={JSON.stringify({ data: value, match: matchKeys.length > 0 ? matchKeys.join(', ') : value })} size={200} level="H" />
                 {label && <p className="preview-label">{label}</p>}
                 <p className="preview-value">{value}</p>
               </div>

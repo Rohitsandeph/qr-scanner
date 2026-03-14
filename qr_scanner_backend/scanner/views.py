@@ -1,3 +1,5 @@
+import json
+
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.generics import ListAPIView
@@ -12,7 +14,7 @@ from .serializers import (
     QRCodeGenerateSerializer, QRCodeSerializer,
 )
 from .qr_generator import generate_qr_base64
-from .utils import extract_id, check_match
+from .utils import extract_id, check_match, parse_qr1_data
 
 
 # ===== Scan Views =====
@@ -25,40 +27,17 @@ class FirstScanView(APIView):
         serializer.is_valid(raise_exception=True)
 
         qr_data = serializer.validated_data['qr_data']
-        extracted_id = extract_id(qr_data)
 
-        # Look up QR #1 in database to find its match_key
-        match_key = extracted_id  # default fallback
-        qr_label = ''
-        qr_found_in_db = False
-
-        try:
-            qr_code = QRCode.objects.get(value=qr_data.strip(), is_active=True)
-            match_key = qr_code.match_key
-            qr_label = qr_code.label
-            qr_found_in_db = True
-        except QRCode.DoesNotExist:
-            # Try partial match — maybe the scanned data contains a known value
-            try:
-                qr_code = QRCode.objects.filter(
-                    value__iexact=qr_data.strip(), is_active=True
-                ).first()
-                if qr_code:
-                    match_key = qr_code.match_key
-                    qr_label = qr_code.label
-                    qr_found_in_db = True
-            except Exception:
-                pass
-
-        if not qr_found_in_db:
+        # Parse QR1 JSON format — match keywords are embedded in the QR itself
+        parsed = parse_qr1_data(qr_data)
+        if not parsed or not parsed.get('match', '').strip():
             return Response({
-                'error': 'This QR code is not registered in the system. It may be QR #2. Please scan QR #1 first.',
+                'error': 'This QR code does not contain match keywords. Please scan the correct QR #1.',
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if not match_key or not match_key.strip():
-            return Response({
-                'error': 'This QR code does not have any match keywords. Please scan the correct QR #1 that contains match keywords.',
-            }, status=status.HTTP_400_BAD_REQUEST)
+        match_key = parsed['match'].strip()
+        extracted_data = parsed.get('data', '')
+        extracted_id = extract_id(extracted_data) if extracted_data else ''
 
         session = ScanSession.objects.create(
             first_qr_data=qr_data,
@@ -71,8 +50,6 @@ class FirstScanView(APIView):
             'session_id': str(session.session_id),
             'extracted_id': extracted_id,
             'match_key': match_key,
-            'qr_label': qr_label,
-            'found_in_system': qr_found_in_db,
         }, status=status.HTTP_201_CREATED)
 
 
@@ -139,7 +116,8 @@ class QRCodeGenerateView(APIView):
         match_key = serializer.validated_data['match_key']
         label = serializer.validated_data.get('label', '')
 
-        qr_image_base64 = generate_qr_base64(value)
+        qr_payload = json.dumps({"data": value, "match": match_key})
+        qr_image_base64 = generate_qr_base64(qr_payload)
 
         qr_code = QRCode.objects.create(
             value=value,

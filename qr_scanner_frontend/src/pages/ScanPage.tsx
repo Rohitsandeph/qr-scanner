@@ -94,9 +94,6 @@ export function ScanPage() {
             <p className="instruction">Step 2: Now scan QR #2 to verify</p>
             {session && (
               <div className="match-key-info">
-                {session.qrLabel && (
-                  <div className="system-badge">QR found in system: {session.qrLabel}</div>
-                )}
                 <div className="extracted-id-badge">
                   Searching for:{' '}
                   {session.matchKey.split(',').map((key) => (
