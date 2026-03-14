@@ -28,16 +28,17 @@ class FirstScanView(APIView):
 
         qr_data = serializer.validated_data['qr_data']
 
-        # Parse QR1 JSON format — match keywords are embedded in the QR itself
+        # Accept any QR code — JSON (generated) or plain (external)
         parsed = parse_qr1_data(qr_data)
-        if not parsed or not parsed.get('match', '').strip():
-            return Response({
-                'error': 'This QR code does not contain match keywords. Please scan the correct QR #1.',
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        match_key = parsed['match'].strip()
-        extracted_data = parsed.get('data', '')
-        extracted_id = extract_id(extracted_data) if extracted_data else ''
+        if parsed and parsed.get('match', '').strip():
+            # Generated QR code with match keywords
+            match_key = parsed['match'].strip()
+            extracted_data = parsed.get('data', '')
+            extracted_id = extract_id(extracted_data) if extracted_data else ''
+        else:
+            # Plain QR code — keywords will come from the second scan
+            match_key = ''
+            extracted_id = extract_id(qr_data)
 
         session = ScanSession.objects.create(
             first_qr_data=qr_data,
@@ -74,19 +75,40 @@ class MatchScanView(APIView):
         # Reject if the same QR is scanned again
         if qr_data.strip() == session.first_qr_data.strip():
             return Response({
-                'error': 'You scanned the same QR code as QR #1. Please scan a different QR #2.',
+                'error': 'You scanned the same QR code twice. Please scan a different QR code.',
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Reject if user scanned another QR #1 code instead of a plain QR #2
-        if parse_qr1_data(qr_data) is not None:
+        second_parsed = parse_qr1_data(qr_data)
+        first_has_keywords = bool(session.match_key)
+        second_has_keywords = second_parsed is not None and bool(second_parsed.get('match', '').strip())
+
+        # Both are generated QR codes
+        if first_has_keywords and second_has_keywords:
             return Response({
-                'error': 'You scanned a QR #1 code. Please scan a plain QR #2 code instead.',
+                'error': 'Both QR codes are generated codes. One must be a plain QR code.',
             }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Neither has match keywords
+        if not first_has_keywords and not second_has_keywords:
+            return Response({
+                'error': 'Neither QR code contains match keywords. One must be a generated QR code.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determine which has keywords and which is the plain text
+        if first_has_keywords:
+            # First scan was generated, second is plain
+            match_key = session.match_key
+            plain_text = qr_data
+        else:
+            # First scan was plain, second is generated — extract keywords from second
+            match_key = second_parsed['match'].strip()
+            plain_text = session.first_qr_data
+            # Update session with the discovered match_key
+            session.match_key = match_key
 
         second_id = extract_id(qr_data)
 
-        # Check each keyword from QR #1's match key against QR #2's plain string
-        result = check_match(session.match_key, qr_data)
+        result = check_match(match_key, plain_text)
 
         session.second_qr_data = qr_data
         session.second_qr_id = second_id

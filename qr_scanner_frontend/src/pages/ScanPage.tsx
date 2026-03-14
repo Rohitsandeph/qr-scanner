@@ -98,7 +98,7 @@ export function ScanPage() {
 
         {phase === 'IDLE_FIRST' && (
           <div className="scan-action-section">
-            <p className="instruction">Step 1: Scan the first QR code</p>
+            <p className="instruction">Step 1: Scan any QR code first</p>
             <button
               className="scan-trigger-btn"
               onClick={() => setPhase('SCANNING_FIRST')}
@@ -111,7 +111,7 @@ export function ScanPage() {
 
         {phase === 'SCANNING_FIRST' && (
           <>
-            <p className="instruction">Point your camera at QR #1</p>
+            <p className="instruction">Point your camera at the first QR code</p>
             <QRScanner onScan={handleFirstScan} isActive={!loading} />
             <button
               className="cancel-scan-btn"
@@ -125,17 +125,27 @@ export function ScanPage() {
         {phase === 'IDLE_SECOND' && session && (
           <div className="scan-action-section">
             <div className="scanned-info">
-              <div className="scanned-info-label">QR #1 scanned successfully</div>
-              <div className="match-key-info">
-                <div className="extracted-id-badge">
-                  Match keywords:{' '}
-                  {session.matchKey.split(',').map((key) => (
-                    <span key={key} className="match-key-tag">{key.trim()}</span>
-                  ))}
+              <div className="scanned-info-label">First QR scanned successfully</div>
+              {session.matchKey ? (
+                <div className="match-key-info">
+                  <div className="extracted-id-badge">
+                    Match keywords:{' '}
+                    {session.matchKey.split(',').map((key) => (
+                      <span key={key} className="match-key-tag">{key.trim()}</span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="match-key-info">
+                  <div className="extracted-id-badge">Plain QR code scanned</div>
+                </div>
+              )}
             </div>
-            <p className="instruction">Step 2: Now scan QR #2 to verify</p>
+            <p className="instruction">
+              {session.matchKey
+                ? 'Step 2: Now scan the second QR code to verify'
+                : 'Step 2: Now scan the generated QR code with match keywords'}
+            </p>
             <button
               className="scan-trigger-btn"
               onClick={() => setPhase('SCANNING_SECOND')}
@@ -148,8 +158,8 @@ export function ScanPage() {
 
         {phase === 'SCANNING_SECOND' && (
           <>
-            <p className="instruction">Point your camera at QR #2</p>
-            {session && (
+            <p className="instruction">Point your camera at the second QR code</p>
+            {session && session.matchKey && (
               <div className="match-key-info">
                 <div className="extracted-id-badge">
                   Searching for:{' '}
@@ -172,18 +182,20 @@ export function ScanPage() {
         {phase === 'READY_CHECK' && session && secondQrData && (
           <div className="scan-action-section">
             <div className="scanned-info">
-              <div className="scanned-info-label">QR #1 scanned</div>
-              <div className="match-key-info">
-                <div className="extracted-id-badge">
-                  Match keywords:{' '}
-                  {session.matchKey.split(',').map((key) => (
-                    <span key={key} className="match-key-tag">{key.trim()}</span>
-                  ))}
+              <div className="scanned-info-label">First QR scanned</div>
+              {session.matchKey && (
+                <div className="match-key-info">
+                  <div className="extracted-id-badge">
+                    Match keywords:{' '}
+                    {session.matchKey.split(',').map((key) => (
+                      <span key={key} className="match-key-tag">{key.trim()}</span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <div className="scanned-info">
-              <div className="scanned-info-label">QR #2 scanned</div>
+              <div className="scanned-info-label">Second QR scanned</div>
               <div className="scanned-data-preview">{secondQrData.length > 100 ? secondQrData.slice(0, 100) + '...' : secondQrData}</div>
             </div>
             <button
