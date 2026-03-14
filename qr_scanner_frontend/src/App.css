@@ -821,20 +821,71 @@
   flex-wrap: wrap;
 }
 
-.match-keys-container {
+.keyword-rows {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.4rem;
-  border: 1px solid #333;
-  border-radius: 8px;
-  background: #0f0f0f;
-  min-height: 42px;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.keyword-row {
+  display: flex;
+  gap: 0.5rem;
   align-items: center;
 }
 
-.match-keys-container:focus-within {
+.keyword-input {
+  flex: 1;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #0f0f0f;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.keyword-input:focus {
   border-color: #646cff;
+}
+
+.keyword-remove-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #ff6b6b;
+  background: transparent;
+  color: #ff6b6b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.keyword-remove-btn:hover {
+  background: #ff6b6b;
+  color: #000;
+}
+
+.keyword-add-btn {
+  background: transparent;
+  border: 1px dashed #646cff;
+  color: #646cff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s, color 0.2s;
+  width: 100%;
+}
+
+.keyword-add-btn:hover {
+  background: #646cff;
+  color: #fff;
 }
 
 .match-key-tag {
@@ -847,32 +898,6 @@
   border-radius: 12px;
   font-size: 0.85rem;
   white-space: nowrap;
-}
-
-.match-key-tag button {
-  background: transparent;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0;
-  line-height: 1;
-  opacity: 0.7;
-}
-
-.match-key-tag button:hover {
-  opacity: 1;
-}
-
-.match-key-input {
-  flex: 1;
-  min-width: 120px;
-  border: none;
-  background: transparent;
-  color: #fff;
-  font-size: 0.9rem;
-  outline: none;
-  padding: 0.25rem;
 }
 
 .field-hint {
@@ -1050,6 +1075,20 @@
   text-align: center;
   padding: 2rem;
   color: #ff6b6b;
+}
+
+.scanner-error-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  color: #ff6b6b;
+  text-align: center;
+  padding: 1.5rem;
+  z-index: 10;
 }
 
 .error-icon {

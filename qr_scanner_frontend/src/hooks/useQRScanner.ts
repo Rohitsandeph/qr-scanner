@@ -13,9 +13,15 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
   const animFrameRef = useRef<number>(0);
   const lastScannedRef = useRef<string>('');
   const lastScannedTimeRef = useRef<number>(0);
+  const onScanRef = useRef(onScan);
 
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Keep onScan ref up to date without causing re-renders
+  useEffect(() => {
+    onScanRef.current = onScan;
+  }, [onScan]);
 
   const stopScanning = useCallback(() => {
     if (animFrameRef.current) {
@@ -29,45 +35,20 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
     setIsScanning(false);
   }, []);
 
-  const scanFrame = useCallback(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-      animFrameRef.current = requestAnimationFrame(scanFrame);
-      return;
-    }
-
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-    if (code && code.data) {
-      const now = Date.now();
-      if (
-        code.data !== lastScannedRef.current ||
-        now - lastScannedTimeRef.current > 2000
-      ) {
-        lastScannedRef.current = code.data;
-        lastScannedTimeRef.current = now;
-        try {
-          navigator.vibrate?.(200);
-        } catch {}
-        onScan(code.data);
-        return;
-      }
-    }
-
-    animFrameRef.current = requestAnimationFrame(scanFrame);
-  }, [onScan]);
-
   const startScanning = useCallback(async () => {
+    // Stop any existing scan first
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = 0;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
     setError(null);
+    setIsScanning(false);
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
@@ -79,16 +60,53 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
       }
       setIsScanning(true);
       lastScannedRef.current = '';
+
+      const scanFrame = () => {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+          animFrameRef.current = requestAnimationFrame(scanFrame);
+          return;
+        }
+
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return;
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code && code.data) {
+          const now = Date.now();
+          if (
+            code.data !== lastScannedRef.current ||
+            now - lastScannedTimeRef.current > 2000
+          ) {
+            lastScannedRef.current = code.data;
+            lastScannedTimeRef.current = now;
+            try {
+              navigator.vibrate?.(200);
+            } catch {}
+            onScanRef.current(code.data);
+            return;
+          }
+        }
+
+        animFrameRef.current = requestAnimationFrame(scanFrame);
+      };
+
       animFrameRef.current = requestAnimationFrame(scanFrame);
     } catch {
       setError('Camera access denied. Please allow camera permissions and try again.');
     }
-  }, [scanFrame]);
+  }, []);
 
   const retry = useCallback(() => {
-    stopScanning();
     startScanning();
-  }, [stopScanning, startScanning]);
+  }, [startScanning]);
 
   useEffect(() => {
     if (active) {

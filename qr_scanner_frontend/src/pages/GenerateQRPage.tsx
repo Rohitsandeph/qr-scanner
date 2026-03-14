@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import type { FormEvent, KeyboardEvent } from 'react';
+import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import type { QRCodeItem } from '../types';
@@ -11,8 +11,7 @@ export function GenerateQRPage() {
   const { user, logout } = useAuth();
 
   const [value, setValue] = useState('');
-  const [matchKeys, setMatchKeys] = useState<string[]>([]);
-  const [matchKeyInput, setMatchKeyInput] = useState('');
+  const [keywordInputs, setKeywordInputs] = useState<string[]>(['']);
   const [label, setLabel] = useState('');
   const [generated, setGenerated] = useState<QRCodeItem | null>(null);
 
@@ -20,23 +19,27 @@ export function GenerateQRPage() {
   const [error, setError] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
 
-  const addMatchKey = () => {
-    const trimmed = matchKeyInput.trim();
-    if (trimmed && !matchKeys.includes(trimmed)) {
-      setMatchKeys([...matchKeys, trimmed]);
-    }
-    setMatchKeyInput('');
+  const updateKeyword = (index: number, val: string) => {
+    const updated = [...keywordInputs];
+    updated[index] = val;
+    setKeywordInputs(updated);
   };
 
-  const handleMatchKeyKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addMatchKey();
-    }
+  const addKeywordRow = () => {
+    setKeywordInputs([...keywordInputs, '']);
   };
 
-  const removeMatchKey = (index: number) => {
-    setMatchKeys(matchKeys.filter((_, i) => i !== index));
+  const removeKeywordRow = (index: number) => {
+    if (keywordInputs.length <= 1) {
+      setKeywordInputs(['']);
+      return;
+    }
+    setKeywordInputs(keywordInputs.filter((_, i) => i !== index));
+  };
+
+  const getMatchKeyValue = () => {
+    const keywords = keywordInputs.map((k) => k.trim()).filter(Boolean);
+    return keywords.length > 0 ? keywords.join(', ') : value;
   };
 
   const handleGenerate = async (e: FormEvent) => {
@@ -45,7 +48,7 @@ export function GenerateQRPage() {
     setLoading(true);
     setGenerated(null);
     try {
-      const matchKeyValue = matchKeys.length > 0 ? matchKeys.join(', ') : value;
+      const matchKeyValue = getMatchKeyValue();
       const qr = await generateQRCode({ value, match_key: matchKeyValue, label });
       setGenerated(qr);
     } catch (err: any) {
@@ -93,6 +96,8 @@ export function GenerateQRPage() {
     link.click();
   };
 
+  const matchKeyValue = getMatchKeyValue();
+
   return (
     <div className="generate-page">
       <header className="page-header">
@@ -119,23 +124,34 @@ export function GenerateQRPage() {
               />
             </div>
             <div className="form-group">
-              <label>Match Keywords (press Enter to add each keyword)</label>
-              <div className="match-keys-container">
-                {matchKeys.map((key, i) => (
-                  <span key={i} className="match-key-tag">
-                    {key}
-                    <button type="button" onClick={() => removeMatchKey(i)}>&times;</button>
-                  </span>
+              <label>Match Keywords</label>
+              <div className="keyword-rows">
+                {keywordInputs.map((kw, i) => (
+                  <div key={i} className="keyword-row">
+                    <input
+                      className="keyword-input"
+                      value={kw}
+                      onChange={(e) => updateKeyword(i, e.target.value)}
+                      placeholder={`Keyword ${i + 1}`}
+                    />
+                    <button
+                      type="button"
+                      className="keyword-remove-btn"
+                      onClick={() => removeKeywordRow(i)}
+                      title="Remove keyword"
+                    >
+                      &minus;
+                    </button>
+                  </div>
                 ))}
-                <input
-                  className="match-key-input"
-                  value={matchKeyInput}
-                  onChange={(e) => setMatchKeyInput(e.target.value)}
-                  onKeyDown={handleMatchKeyKeyDown}
-                  onBlur={addMatchKey}
-                  placeholder={matchKeys.length === 0 ? 'e.g., 4521' : 'Add another keyword...'}
-                />
               </div>
+              <button
+                type="button"
+                className="keyword-add-btn"
+                onClick={addKeywordRow}
+              >
+                + Add Keyword
+              </button>
               <span className="field-hint">
                 When scanning, ALL keywords must be found in QR #2 for a match. Leave empty to use the full value.
               </span>
@@ -157,7 +173,7 @@ export function GenerateQRPage() {
             <h3>Preview</h3>
             {value ? (
               <div className="qr-preview">
-                <QRCodeSVG value={JSON.stringify({ data: value, match: matchKeys.length > 0 ? matchKeys.join(', ') : value })} size={200} level="H" />
+                <QRCodeSVG value={JSON.stringify({ data: value, match: matchKeyValue })} size={200} level="H" />
                 {label && <p className="preview-label">{label}</p>}
                 <p className="preview-value">{value}</p>
               </div>
