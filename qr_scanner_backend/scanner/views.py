@@ -55,6 +55,11 @@ class FirstScanView(APIView):
                 'error': 'This QR code is not registered in the system. It may be QR #2. Please scan QR #1 first.',
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        if not match_key or not match_key.strip():
+            return Response({
+                'error': 'This QR code does not have any match keywords. Please scan the correct QR #1 that contains match keywords.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         session = ScanSession.objects.create(
             first_qr_data=qr_data,
             first_qr_id=extracted_id,
