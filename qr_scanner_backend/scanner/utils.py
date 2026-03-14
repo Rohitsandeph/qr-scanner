@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from urllib.parse import urlparse, parse_qs
 
@@ -48,12 +50,10 @@ def extract_id(qr_data: str) -> str:
 
 def check_match(match_key: str, qr2_raw_data: str) -> dict:
     """
-    Split match_key by comma into keywords. ALL keywords must be found
-    in QR #2's raw string (case-insensitive) for a match.
-    Returns dict with is_match and message.
+    Check if QR #1's comma-separated match keywords are all found
+    in QR #2's plain string (case-insensitive substring search).
     """
     keywords = [k.strip() for k in match_key.split(',') if k.strip()]
-    data = qr2_raw_data.strip()
 
     if not keywords:
         return {
@@ -61,8 +61,8 @@ def check_match(match_key: str, qr2_raw_data: str) -> dict:
             'message': 'No match key provided',
         }
 
-    data_lower = data.lower()
-    missing = [k for k in keywords if k.lower() not in data_lower]
+    qr2_lower = qr2_raw_data.strip().lower()
+    missing = [k for k in keywords if k.lower() not in qr2_lower]
 
     if not missing:
         kw_display = '", "'.join(keywords)
