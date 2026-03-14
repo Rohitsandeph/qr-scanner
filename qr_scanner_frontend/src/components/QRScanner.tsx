@@ -6,10 +6,11 @@ interface QRScannerProps {
 }
 
 export function QRScanner({ onScan, isActive }: QRScannerProps) {
-  const { videoRef, canvasRef, isScanning, error, retry } = useQRScanner({
-    onScan,
-    active: isActive,
-  });
+  const { videoRef, canvasRef, isScanning, error, permissionBlocked, retry } =
+    useQRScanner({
+      onScan,
+      active: isActive,
+    });
 
   return (
     <div className="scanner-container">
@@ -26,10 +27,17 @@ export function QRScanner({ onScan, isActive }: QRScannerProps) {
       {error ? (
         <div className="scanner-error-overlay">
           <div className="error-icon">!</div>
-          <p>{error}</p>
-          <button className="scan-trigger-btn" onClick={retry}>
-            Try Again
-          </button>
+          <p style={{ whiteSpace: 'pre-line' }}>{error}</p>
+          {permissionBlocked ? (
+            <p className="permission-hint">
+              Once you allow camera access in your browser settings, the camera
+              will start automatically.
+            </p>
+          ) : (
+            <button className="scan-trigger-btn" onClick={retry}>
+              Try Again
+            </button>
+          )}
         </div>
       ) : (
         <>

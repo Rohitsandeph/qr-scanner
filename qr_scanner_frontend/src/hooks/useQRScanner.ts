@@ -15,6 +15,7 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
 
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [permissionBlocked, setPermissionBlocked] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   // Keep onScan ref up to date without causing re-renders
@@ -34,15 +35,14 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
 
     function handlePermissionChange() {
       if (cancelled) return;
-      // Permission state changed (e.g. user granted after denying).
-      // Re-trigger the effect by bumping retryCount.
-      if (permissionStatus?.state === 'granted') {
-        setRetryCount((c) => c + 1);
-      }
+      // Permission state changed (e.g. user went to settings and granted).
+      // Auto-retry regardless of new state — let getUserMedia decide.
+      setRetryCount((c) => c + 1);
     }
 
     async function start() {
       setError(null);
+      setPermissionBlocked(false);
 
       // Listen for permission changes so we can auto-retry when user grants
       try {
@@ -157,13 +157,24 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
         const errMsg = err instanceof Error ? err.message : String(err);
         console.error('Camera error:', errName, errMsg);
 
-        if (err instanceof DOMException) {
+        if (err instanceof DOMException && err.name === 'NotAllowedError') {
+          // Check if permission is permanently blocked or just dismissed
+          const isDenied = permissionStatus?.state === 'denied';
+          setPermissionBlocked(isDenied);
+
+          if (isDenied) {
+            setError(
+              'Camera is blocked for this site. To fix this:\n' +
+                '1. Tap the lock/settings icon in your browser address bar\n' +
+                '2. Find "Camera" and change it to "Allow"\n' +
+                '3. The camera will start automatically'
+            );
+          } else {
+            // Permission was dismissed or is in "prompt" state — retry can re-show the prompt
+            setError('Camera permission was not granted. Please tap "Try Again" and allow camera access.');
+          }
+        } else if (err instanceof DOMException) {
           switch (err.name) {
-            case 'NotAllowedError':
-              setError(
-                'Camera permission was denied. Please go to your browser site settings, allow camera access, then tap "Try Again".'
-              );
-              break;
             case 'NotFoundError':
               setError('No camera found on this device.');
               break;
@@ -194,5 +205,5 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
     };
   }, [active, retryCount]);
 
-  return { videoRef, canvasRef, isScanning, error, retry };
+  return { videoRef, canvasRef, isScanning, error, permissionBlocked, retry };
 }
