@@ -19,7 +19,7 @@ class ScanSessionSerializer(serializers.ModelSerializer):
 
 class QRCodeGenerateSerializer(serializers.Serializer):
     value = serializers.CharField()
-    match_key = serializers.CharField(help_text='Comma-separated keywords to search for when matching')
+    match_key = serializers.CharField(allow_blank=True, help_text='Comma-separated keywords to search for when matching')
     label = serializers.CharField(required=False, default='', allow_blank=True)
 
 

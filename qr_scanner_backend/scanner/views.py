@@ -17,6 +17,17 @@ from .qr_generator import generate_qr_base64
 from .utils import extract_id, check_match, parse_qr1_data
 
 
+def _extract_data_field(qr_raw: str) -> str:
+    """Extract the 'data' field from a JSON QR code, or return the raw string."""
+    try:
+        parsed = json.loads(qr_raw)
+        if isinstance(parsed, dict) and 'data' in parsed:
+            return str(parsed['data'])
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return qr_raw.strip()
+
+
 # ===== Scan Views =====
 
 class FirstScanView(APIView):
@@ -96,13 +107,13 @@ class MatchScanView(APIView):
 
         # Determine which has keywords and which is the plain text
         if first_has_keywords:
-            # First scan was generated, second is plain
+            # First scan was generated QR with keywords, second is the plain one
             match_key = session.match_key
-            plain_text = qr_data
+            plain_text = _extract_data_field(qr_data)
         else:
-            # First scan was plain, second is generated — extract keywords from second
+            # First scan was plain, second is the generated QR with keywords
             match_key = second_parsed['match'].strip()
-            plain_text = session.first_qr_data
+            plain_text = _extract_data_field(session.first_qr_data)
             # Update session with the discovered match_key
             session.match_key = match_key
 

@@ -11,7 +11,7 @@ def parse_qr1_data(qr_data: str) -> dict | None:
     """
     try:
         parsed = json.loads(qr_data)
-        if isinstance(parsed, dict) and 'match' in parsed:
+        if isinstance(parsed, dict) and parsed.get('match', '').strip():
             return parsed
     except (json.JSONDecodeError, TypeError):
         pass

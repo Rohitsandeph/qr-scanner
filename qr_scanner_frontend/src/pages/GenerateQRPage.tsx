@@ -39,7 +39,7 @@ export function GenerateQRPage() {
 
   const getMatchKeyValue = () => {
     const keywords = keywordInputs.map((k) => k.trim()).filter(Boolean);
-    return keywords.length > 0 ? keywords.join(', ') : value;
+    return keywords.length > 0 ? keywords.join(', ') : '';
   };
 
   const handleGenerate = async (e: FormEvent) => {
