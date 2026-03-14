@@ -51,15 +51,6 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
         });
         if (cancelled) return;
         permissionStatus.addEventListener('change', handlePermissionChange);
-
-        // If permission is explicitly denied, don't even try getUserMedia
-        // (it would just throw immediately)
-        if (permissionStatus.state === 'denied') {
-          setError(
-            'Camera permission is blocked. Please allow camera access in your browser settings, then try again.'
-          );
-          return;
-        }
       } catch {
         // Permissions API not supported — fall through and try getUserMedia directly
       }
@@ -159,7 +150,7 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
           switch (err.name) {
             case 'NotAllowedError':
               setError(
-                'Camera permission was denied. Please allow camera access in your browser settings and try again.'
+                'Camera permission was denied. Please go to your browser settings, allow camera access for this site, then tap "Try Again".'
               );
               break;
             case 'NotFoundError':
