@@ -1,4 +1,4 @@
-export type ScanPhase = 'SCAN_FIRST' | 'SCAN_SECOND' | 'RESULT';
+export type ScanPhase = 'IDLE_FIRST' | 'SCANNING_FIRST' | 'IDLE_SECOND' | 'SCANNING_SECOND' | 'READY_CHECK' | 'RESULT';
 
 export interface ScanSession {
   sessionId: string;
