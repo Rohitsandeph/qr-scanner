@@ -30,17 +30,63 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
     let cancelled = false;
     let stream: MediaStream | null = null;
     let animFrame = 0;
+    let permissionStatus: PermissionStatus | null = null;
+
+    function handlePermissionChange() {
+      if (cancelled) return;
+      // Permission state changed (e.g. user granted after denying).
+      // Re-trigger the effect by bumping retryCount.
+      if (permissionStatus?.state === 'granted') {
+        setRetryCount((c) => c + 1);
+      }
+    }
 
     async function start() {
       setError(null);
 
+      // Listen for permission changes so we can auto-retry when user grants
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
+        permissionStatus = await navigator.permissions.query({
+          name: 'camera' as PermissionName,
         });
+        if (cancelled) return;
+        permissionStatus.addEventListener('change', handlePermissionChange);
+
+        // If permission is explicitly denied, don't even try getUserMedia
+        // (it would just throw immediately)
+        if (permissionStatus.state === 'denied') {
+          setError(
+            'Camera permission is blocked. Please allow camera access in your browser settings, then try again.'
+          );
+          return;
+        }
+      } catch {
+        // Permissions API not supported — fall through and try getUserMedia directly
+      }
+
+      try {
+        // Try with environment camera first, fall back to any camera
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' },
+          });
+        } catch (constraintErr) {
+          if (cancelled) return;
+          // If environment camera fails with OverconstrainedError, try any camera
+          if (
+            constraintErr instanceof DOMException &&
+            constraintErr.name === 'OverconstrainedError'
+          ) {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+            });
+          } else {
+            throw constraintErr;
+          }
+        }
 
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream!.getTracks().forEach((t) => t.stop());
           return;
         }
 
@@ -50,7 +96,7 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
         }
 
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream!.getTracks().forEach((t) => t.stop());
           return;
         }
 
@@ -62,7 +108,11 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
 
           const video = videoRef.current;
           const canvas = canvasRef.current;
-          if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+          if (
+            !video ||
+            !canvas ||
+            video.readyState !== video.HAVE_ENOUGH_DATA
+          ) {
             animFrame = requestAnimationFrame(scanFrame);
             return;
           }
@@ -74,7 +124,12 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
           canvas.height = video.videoHeight;
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
           const code = jsQR(imageData.data, imageData.width, imageData.height);
 
           if (code && code.data) {
@@ -97,11 +152,29 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
         };
 
         animFrame = requestAnimationFrame(scanFrame);
-      } catch {
-        if (!cancelled) {
-          setError(
-            'Camera access denied. Please allow camera permissions and try again.'
-          );
+      } catch (err) {
+        if (cancelled) return;
+
+        if (err instanceof DOMException) {
+          switch (err.name) {
+            case 'NotAllowedError':
+              setError(
+                'Camera permission was denied. Please allow camera access in your browser settings and try again.'
+              );
+              break;
+            case 'NotFoundError':
+              setError('No camera found on this device.');
+              break;
+            case 'NotReadableError':
+              setError(
+                'Camera is already in use by another application. Close it and try again.'
+              );
+              break;
+            default:
+              setError(`Camera error: ${err.message}`);
+          }
+        } else {
+          setError('Failed to access camera. Please try again.');
         }
       }
     }
@@ -112,6 +185,9 @@ export function useQRScanner({ onScan, active }: UseQRScannerOptions) {
       cancelled = true;
       if (animFrame) cancelAnimationFrame(animFrame);
       if (stream) stream.getTracks().forEach((t) => t.stop());
+      if (permissionStatus) {
+        permissionStatus.removeEventListener('change', handlePermissionChange);
+      }
       setIsScanning(false);
     };
   }, [active, retryCount]);
